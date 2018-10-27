@@ -1,0 +1,177 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>登入</title>
+  {{ template "base/link.html"}}
+</head>
+<body>
+{{ if .LoginStatus }}
+<div class="fly-header layui-bg-black">
+  <div class="layui-container">
+    <a class="fly-logo" href="/">
+      <img src="/static/images/logo.png" alt="layui">
+    </a>
+    <ul class="layui-nav fly-nav-user">
+        <!-- 登入后的状态 -->
+        <li class="layui-nav-item">
+            <a class="fly-nav-avatar" href="javascript:;">
+                <cite class="layui-hide-xs">{{.User.Name}}</cite>
+            {{if eq .User.Role  0 }}
+                <i class="iconfont icon-renzheng layui-hide-xs"></i>
+                <i class="layui-badge fly-badge-vip layui-hide-xs">管理员</i>
+            {{else}}
+                <i class="layui-badge fly-badge-vip layui-hide-xs">作者</i>
+            {{end}}
+                <img src="{{.User.Avatar}}">
+            </a>
+            <dl class="layui-nav-child">
+                <dd><a href="/admin"><i class="layui-icon" style="margin-left: 2px; font-size: 22px;">&#xe68e;</i>我的主页</a></dd>
+                <hr style="margin: 5px 0;">
+                <dd><a href="/user/logout" style="text-align: center;">退出</a></dd>
+            </dl>
+        </li>
+    </ul>
+  </div>
+</div>
+<!--是登录状态是自动跳转-->
+<meta http-equiv="refresh" content="0.1;url=/">
+{{else}}
+<div class="fly-header layui-bg-black">
+ <div class="layui-container">
+    <a class="fly-logo" href="/">
+        <img src="/static/images/logo.png" alt="layui">
+    </a>
+    <ul class="layui-nav fly-nav-user">
+        <!-- 未登入的状态 -->
+        <li class="layui-nav-item">
+            <a class="iconfont icon-touxiang layui-hide-xs" href="/user/login.html"></a>
+        </li>
+        <li class="layui-nav-item">
+            <a href="/user/login">登入</a>
+        </li>
+        <li class="layui-nav-item">
+            <a href="/user/reg">注册</a>
+        </li>
+    </ul>
+ </div>
+</div>
+<div class="layui-container fly-marginTop">
+    <div class="fly-panel fly-panel-user" pad20>
+        <div class="layui-tab layui-tab-brief" lay-filter="user">
+            <ul class="layui-tab-title">
+                <li class="layui-this">登入</li>
+                <li><a href="/user/reg">注册</a></li>
+            </ul>
+            <div class="layui-form layui-tab-content" id="LAY_ucm" style="padding: 20px 0;">
+                <div class="layui-tab-item layui-show">
+                    <div class="layui-form layui-form-pane">
+                        <form method="post">
+                            <div class="layui-form-item">
+                                <label for="L_email" class="layui-form-label">邮箱</label>
+                                <div class="layui-input-inline">
+                                    <input type="text" id="L_email" name="email" required lay-verify="required" autocomplete="off" class="layui-input">
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <label for="L_pass" class="layui-form-label">密码</label>
+                                <div class="layui-input-inline">
+                                    <input type="password" id="L_pass" name="pass" required lay-verify="required" autocomplete="off" class="layui-input">
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <label for="L_vercode" class="layui-form-label">验证码</label>
+                                <div class="layui-input-inline">
+                                    <input type="hidden" id="vercodeId" name="vercodeId"  value="{{ .CaptchaId }}" required lay-verify="required"  autocomplete="off" class="layui-input">
+                                    <input type="type" id="L_vercode" name="vercode"  required lay-verify="required" placeholder="请输入验证码" autocomplete="off" class="layui-input">
+                                </div>
+                                <div class="layui-form-mid">
+                                    <span style="color: #c00;"><img id=image src="/authentication/{{.CaptchaId}}.png" onclick="reload()" alt="Authentication Image"></span>
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <button class="layui-btn" lay-filter="login" lay-submit>立即登录</button>
+                                <span style="padding-left:20px;">
+                                  <a href="/user/forget">忘记密码？</a>
+                                </span>
+                            </div>
+                            <div class="layui-form-item fly-form-app">
+                                <span>或者使用社交账号登入</span>
+                                <a href="" onclick="layer.msg('正在通过QQ登入', {icon:16, shade: 0.1, time:0})" class="iconfont icon-qq" title="QQ登入"></a>
+                                <a href="" onclick="layer.msg('正在通过微博登入', {icon:16, shade: 0.1, time:0})" class="iconfont icon-weibo" title="微博登入"></a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{{end}}
+
+{{ template "base/footer.html"}}
+
+{{ template "base/js.html"}}
+<script>
+    layui.cache.page = 'user';
+    layui.cache.user = {
+        username: '游客'
+        ,uid: -1
+        ,avatar: '../../static/images/avatar/00.jpg'
+        ,experience: 83
+        ,sex: '男'
+    };
+    layui.config({
+        version: "3.0.0"
+        ,base: '/static/mods/' //这里实际使用时，建议改成绝对路径
+    }).extend({
+        fly: 'index'
+    }).use('fly');
+
+    //验证码刷新
+    function setSrcQuery(e, q) {
+        var src  = e.src;
+        var p = src.indexOf('?');
+        if (p >= 0) {
+            src = src.substr(0, p);
+        }
+        e.src = src + "?" + q
+    }
+    function reload(){
+            setSrcQuery(document.getElementById('image'), "reload=" + (new Date()).getTime());
+            return false;
+        }
+
+    layui.use(['form', 'jquery'], function(){
+        var form = layui.form, $=layui.jquery;
+        //监听提交
+        form.on('submit(login)', function(data){
+            $.post("/user/login", data.field, function(res) {
+                if(res.code == 0) {
+                    layer.msg(res.msg);
+                    if (res.action) {
+                        setTimeout(function () {
+                            window.location.href = res.action
+                        }, 300);
+                    }
+                }else {
+                    layer.msg("登录失败:"+ res.msg);
+                    //重新加载验证码
+                    $.get("/user/login", function (res) {
+                        var Imageurl = $(res).find("#image")[0].src;
+                        var CodeId = $(res).find("#vercodeId").val();
+                        $("#image").attr('src', Imageurl);
+                        $("#vercodeId").val(CodeId);
+                    });
+                }
+            },"json").error(function () {
+                layer.msg("网络异常");
+            })
+            return false;
+        });
+    });
+</script>
+
+</body>
+</html>

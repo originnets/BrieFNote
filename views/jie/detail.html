@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Fly Template v3.0，基于 layui 的极简社区页面模版</title>
+  {{ template "base/link.html"}}
+  <link rel="stylesheet" href="/static/markdown/css/editormd.min.css">
+  <link rel="stylesheet" href="/static/markdown/css/editormd.preview.css/">
+</head>
+<body>
+
+{{ if .LoginStatus }}
+<div class="fly-header layui-bg-black">
+    <div class="layui-container">
+        <a class="fly-logo" href="/">
+            <img src="/static/images/logo.png" alt="layui">
+        </a>
+        <ul class="layui-nav fly-nav-user">
+
+            <!-- 登入后的状态 -->
+            <li class="layui-nav-item">
+                <a class="fly-nav-avatar" href="javascript:;">
+                    <cite class="layui-hide-xs">{{.User.Name}}</cite>
+                {{if eq .User.Role  0 }}
+                    <i class="iconfont icon-renzheng layui-hide-xs"></i>
+                    <i class="layui-badge fly-badge-vip layui-hide-xs">管理员</i>
+                {{else}}
+                    <i class="layui-badge fly-badge-vip layui-hide-xs">作者</i>
+                {{end}}
+                    <img src="{{.User.Avatar}}">
+                </a>
+                <dl class="layui-nav-child">
+                    <dd><a href="/user/set"><i class="layui-icon">&#xe620;</i>基本设置</a></dd>
+                    <dd><a href="/user/message"><i class="iconfont icon-tongzhi" style="top: 4px;"></i>我的消息</a></dd>
+                    <dd><a href="/user/homel"><i class="layui-icon" style="margin-left: 2px; font-size: 22px;">&#xe68e;</i>我的主页</a></dd>
+                    <hr style="margin: 5px 0;">
+                    <dd><a href="/user/logout" style="text-align: center;">退出</a></dd>
+                </dl>
+            </li>
+        </ul>
+    </div>
+</div>
+{{else}}
+<div class="fly-header layui-bg-black">
+    <div class="layui-container">
+        <a class="fly-logo" href="/">
+            <img src="/static/images/logo.png" alt="layui">
+        </a>
+        <ul class="layui-nav fly-nav-user">
+            <!-- 未登入的状态 -->
+            <li class="layui-nav-item">
+                <a class="iconfont icon-touxiang layui-hide-xs" href="user/login.html"></a>
+            </li>
+            <li class="layui-nav-item">
+                <a href="/user/login">登入</a>
+            </li>
+            <li class="layui-nav-item">
+                <a href="/user/reg">注册</a>
+            </li>
+        </ul>
+    </div>
+</div>
+{{end}}
+
+<div class="layui-container">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md8 content detail">
+      <div class="fly-panel detail-box">
+        <h1>{{.Article.Title}}</h1>
+        <div class="fly-detail-info">
+          {{ if .Article.Settop}}
+            <span class="layui-badge layui-bg-black">置顶</span>
+          {{end}}
+          {{ if .Article.Thickening}}
+            <span class="layui-badge layui-bg-red">精帖</span>
+          {{end}}
+          {{ range .Article.Types }}
+              <span class="layui-badge layui-bg-red">{{.Typename }}</span>
+          {{end}}
+          <span class="fly-list-nums">
+            <a href="#comment"><i class="iconfont" title="评论">&#xe60c;</i> {{.CommentNum }}</a>
+            <span title="阅读"><i class="layui-icon">&#xe705;</i> {{ .Article.Read.ReadNum }}</span>
+          </span>
+        </div>
+      </div>
+      <div class="detail-about">
+          <a class="fly-avatar" href="../user/home.html">
+            <img src="{{.Article.Img}}" alt="{{.Article.User.Name}}">
+          </a>
+          <div class="fly-detail-user">
+            <a href="../user/home.html" class="fly-link">
+              <cite>{{.Article.User.Name}}</cite>
+                <i class="iconfont icon-renzheng" title="认证信息：XXX"></i>
+                {{ if eq .Article.User.Role 0}}
+                  <i class="layui-badge fly-badge-vip">管理员</i>
+                {{ end}}
+            </a>
+            <span>{{ dateformat .Article.Createtime "2006-01-02"}}</span>
+          </div>
+        </div>
+        <div id="editormd-view" class="detail-body photos" style="width: 735px">
+                <textarea  id="append" style="display:none;">{{ .Article.Content }}</textarea>
+        {{/*{{ markdown .Article.Content }}*/}}
+        </div>
+
+      <div class="fly-panel detail-box" id="flyReply">
+        <fieldset class="layui-elem-field layui-field-title" style="text-align: center;">
+          <legend>评论</legend>
+        </fieldset>
+        <ul class="jieda" id="jieda">
+            {{if eq .CommentNum 0}}
+                <!-- 无数据时 -->
+                <li class="fly-none">暂时没有评论,请开始第一条评论吧</li>
+            {{ else}}
+                {{ range .Comments }}
+                    <li data-id="{{.Id}}">
+                        <a name="item-{{.Id}}"></a>
+                        <div class="detail-about detail-about-reply">
+                            <a class="fly-avatar" href="">
+                                <img src="{{.User.Avatar}}" alt="头像">
+                            </a>
+                            <div class="fly-detail-user">
+                                <a href="" class="fly-link">
+                                    <cite>{{.User.Name }}</cite>
+                                    {{ if eq $.Article.User.Name .User.Name }}
+                                        <span style="color:#B81210">[楼主]</span>
+                                    {{ end}}
+                                    {{ if eq .User.Role 0}}
+                                        <span style="color:#5FB878">[管理员]</span>
+                                    {{ else }}
+                                        <span style="color:#FF9E3F">[作者]</span>
+                                    {{end}}
+                                </a>
+                            </div>
+                            <div class="detail-hits">
+                                <span>{{ dateformat .Createtime "2006-01-02 15:03"}}</span>
+                            </div>
+                        </div>
+                        <div class="detail-body jieda-body photos">
+                            <p>{{ .Content }}</p>
+                        </div>
+                        <div class="jieda-reply">
+                            <span type="reply" ><i class="iconfont icon-svgmoban53" id="aaaa"></i>回复</span>
+                            {{/*<div class="jieda-admin">*/}}
+                                {{/*<span type="edit">编辑</span>*/}}
+                                {{/*<span type="del">删除</span>*/}}
+                            {{/*</div>*/}}
+                        </div>
+                    </li>
+                 {{end}}
+            {{ end}}
+        </ul>
+        
+        <div class="layui-form layui-form-pane">
+          <form action="/comment/add/{{.Article.Id}}" method="post">
+            <div class="layui-form-item layui-form-text">
+              <a name="comment"></a>
+              <div class="layui-input-block">
+                <textarea id="L_content" name="content" required lay-verify="required" placeholder="请输入内容"  class="layui-textarea fly-editor" style="height: 150px;"></textarea>
+              </div>
+            </div>
+            <div class="layui-form-item">
+              <input type="hidden" id="replyid" name="replyid" value="0">
+              <button class="layui-btn" lay-filter="*" lay-submit>提交回复</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="layui-col-md4">
+        <div class="fly-panel">
+            <h3 class="fly-panel-title">目录</h3>
+            <ul class="fly-panel-main fly-list-static">
+                <div class="markdown-body editormd-preview-container" style="width: 320px" id="custom-toc-container"></div>
+            </ul>
+        </div>
+
+        <dl class="fly-panel fly-list-one">
+            <dt class="fly-panel-title">热榜</dt>
+        {{ if eq .Num 0}}
+            <!-- 无数据时 -->
+            <div class="fly-none">没有相关数据</div>
+        {{ else}}
+        {{ range .Reads}}
+            <dd>
+                <a href="/article/detail/{{.Article.Id}}">{{.Article.Title}}</a>
+                <span><i class="iconfont icon-pinglun1"></i> {{.ReadNum }}</span>
+            </dd>
+        <dd>
+        {{end}}
+        {{ end}}
+        </dl>
+
+      {{/*<div class="fly-panel" style="padding: 20px 0; text-align: center;">*/}}
+        {{/*<img src="/static/images/weixin.jpg" style="max-width: 100%;" alt="layui">*/}}
+        {{/*<p style="position: relative; color: #666;">微信扫码关注 layui 公众号</p>*/}}
+      {{/*</div>*/}}
+
+    </div>
+  </div>
+</div>
+
+{{ template "base/footer.html"}}
+{{ template "base/js.html"}}
+{{ template "base/markdownjs.html"}}
+
+<script>
+    $(function(){
+        var EditormdView;
+        EditormdView = editormd.markdownToHTML("editormd-view", {
+            htmlDecode: "style,script,iframe",
+            emoji: true,
+            taskList: true,
+            tex: true,
+            flowChart: true,
+            sequenceDiagram: true,
+            tocContainer    : "#custom-toc-container",
+            tocm   : true,
+            tocTitle      : "目录",
+        });
+    })
+    layui.cache.page = 'jie';
+    layui.cache.user = {
+      username: '游客'
+      ,uid: -1
+      ,avatar: '/static/images/avatar/00.jpg'
+      ,experience: 83
+      ,sex: '男'
+    };
+    layui.config({
+      version: "3.0.0"
+      ,base: '/static/mods/'
+    }).extend({
+      fly: 'index'
+    }).use(['fly', 'face'], function(){
+      var $ = layui.$
+      ,fly = layui.fly;
+    });
+    $("span[type='reply']").on('click',function(){
+        var id = $(this).parent().parent().attr('data-id');
+        $("#replyid").val(id)
+    });
+</script>
+
+</body>
+</html>

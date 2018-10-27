@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>标签管理</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="stylesheet" href="/static/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="/static/admin/style/admin.css" media="all">
+</head>
+{{ if .LoginStatus }}
+<body>
+<div class="layui-fluid">
+    <form class="layui-form" action="">
+        <div class="layui-form-item">
+            <div class="layui-row">
+                <div class="layui-col-md9">
+                    <input type="text" name="add_type" lay-verify="title" autocomplete="off" placeholder="请输入你需要添加的标签" class="layui-input">
+                </div>
+                <div class="layui-col-md3 " style="text-align: right">
+                    <button class="layui-btn layui-btn-fluid" style="width: 92%;" lay-filter="addtype" lay-submit>添加标签</button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <table id="type" lay-filter="type"></table>
+</div>
+</div>
+<script type="text/html" id="bar">
+    <a class="layui-btn layui-btn-xs" lay-event="edit">修改</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+<script src="/static/layui/layui.js"></script>
+<script>
+    layui.config({
+        base: '/static/admin/' //静态资源所在路径
+    }).extend({
+        index: 'lib/index' //主入口模块
+    }).use(['index', 'sample']);
+    layui.use('table', function(){
+        var table = layui.table;
+
+    });
+    layui.use('table', function () {
+        var table = layui.table;
+        table.render({
+            elem: '#type'
+            ,url: '/admin/typelist'
+            ,cols: [[
+                {field: 'id', title: 'ID', width:200,sort: true, fixed: 'left'}
+                ,{field: 'typename', title: '类型名'}
+                ,{fixed: 'right', align:'center', width:300,toolbar: '#bar', title: '操作'}
+            ]]
+        });
+        table.on('tool(type)', function(obj){
+            var data = obj.data;
+            if(obj.event === 'edit'){
+                layer.prompt({
+                    formType: 3
+                    ,value: data.typename
+                }, function(value, index){
+                    layui.use(['form', 'jquery'], function() {
+                        var form = layui.form, $ = layui.jquery;
+                        //监听提交
+                        $.post("/admin/modifytype", {"id": data.id, "typename": value}, function (res) {
+                            if (res.code == 0) {
+                                layer.msg(res.msg);
+                                obj.update({
+                                    typename: value
+                                });
+                                layer.close(index);
+                            } else {
+                                layer.msg("修改失败:" + res.msg);
+                            }
+                        }, "json").error(function () {
+                            layer.msg("网络异常,修改失败");
+                        })
+                        return false;
+                    });
+                });
+            }
+            else if(obj.event === 'del') {
+                layer.confirm('真的要删除吗', function (index) {
+                    layui.use(['form', 'jquery'], function() {
+                        var form = layui.form, $ = layui.jquery;
+                        //监听提交
+                        $.post("/admin/deltype", {"id": data.id,}, function (res) {
+                            if (res.code == 0) {
+                                layer.msg(res.msg);
+                                obj.del();
+                            } else {
+                                layer.msg("删除失败:" + res.msg);
+                            }
+                        }, "json").error(function () {
+                            layer.msg("网络异常,删除失败");
+                        })
+                        return false;
+                    });
+                    layer.close(index);
+                });
+            }
+        });
+    })
+    layui.use(['form', 'jquery'], function(){
+        var form = layui.form, $=layui.jquery;
+        //监听提交
+        form.on('submit(addtype)', function(data){
+            $.post("/admin/addtype", data.field, function(res) {
+                if(res.code == 0) {
+                    layer.msg(res.msg);
+                    setTimeout(function () {
+                        window.location.href = "/admin/type"
+                    }, 300);
+                }else {
+                    layer.msg("添加失败:"+ res.msg);
+                }
+            },"json").error(function () {
+                layer.msg("网络异常");
+            })
+            return false;
+        });
+    });
+</script>
+
+</body>
+{{else}}
+<meta http-equiv="refresh" content="0.1;url=/user/login">
+{{end}}
+</html>
